@@ -1,0 +1,10 @@
+{
+  "name": "@mirror/cdr",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "dependencies": {
+    "@piplabs/cdr-sdk": "latest",
+    "viem": "^2.0.0"
+  }
+}
