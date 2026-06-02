@@ -118,7 +118,7 @@ export default function Dashboard() {
       .from('vaults')
       .select('*')
       .eq('wallet_address', address)
-      .single();
+      .maybeSingle();
 
     if (vaultData) {
       setVault(vaultData);
@@ -141,7 +141,7 @@ export default function Dashboard() {
           .from('vaults')
           .select('*')
           .eq('vault_uuid', matchData[counterCol])
-          .single();
+          .maybeSingle();
         if (counterVaultData) {
           setCounterVault(counterVaultData);
         }
