@@ -6,12 +6,7 @@ import { ToastContainer } from "@/components/ToastContainer";
 
 export const metadata: Metadata = {
   title: "Mirror Protocol",
-  description: "Find your match without showing your hand. Trustless M&A matchmaking protocol.",
-  icons: {
-    icon: "/mirror-logo-light.png",
-    shortcut: "/mirror-logo-light.png",
-    apple: "/mirror-logo-light.png",
-  },
+  description: "Trustless M&A matchmaking on Story Protocol. Both sides seal their intent into CDR vaults. Identities reveal only when both parties consent — simultaneously, on-chain, with no banker in the middle.",
 };
 
 export default function RootLayout({
