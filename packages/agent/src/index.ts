@@ -29,7 +29,8 @@ export const MATCHER_ADDRESS = process.env.NEXT_PUBLIC_MIRROR_MATCHER_ADDR as `0
 
 export const matcherAbi = parseAbi([
   'function recordMatch(bytes32 sellVaultUUID, bytes32 buyVaultUUID, uint8 score) external returns (bytes32 matchId)',
-  'function registerVault(bytes32 vaultUUID, address owner, string vaultType) external'
+  'function registerVault(bytes32 vaultUUID, address owner, string vaultType) external',
+  'function vaultRecords(bytes32) external view returns (address owner, string vaultType, bool registered)'
 ]);
 
 export async function pollVaults() {
@@ -60,23 +61,40 @@ export async function pollVaults() {
 
   // Simple Matchmaking Engine
   for (const sell of sellVaults) {
+    const sellBytes32 = `0x${sell.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
+
+    // Skip vaults that were never confirmed on-chain (Supabase-only entries)
+    const sellRecord = await publicClient.readContract({
+      address: MATCHER_ADDRESS, abi: matcherAbi, functionName: 'vaultRecords', args: [sellBytes32]
+    }) as { owner: string; vaultType: string; registered: boolean };
+    if (!sellRecord.registered) {
+      console.log(`Sell vault ${sell.vault_uuid} not registered on-chain — skipping`);
+      continue;
+    }
+
     for (const buy of buyVaults) {
+      const buyBytes32 = `0x${buy.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
+
+      const buyRecord = await publicClient.readContract({
+        address: MATCHER_ADDRESS, abi: matcherAbi, functionName: 'vaultRecords', args: [buyBytes32]
+      }) as { owner: string; vaultType: string; registered: boolean };
+      if (!buyRecord.registered) {
+        console.log(`Buy vault ${buy.vault_uuid} not registered on-chain — skipping`);
+        continue;
+      }
+
       const score = computeMatchScore(sell.encrypted_data, buy.encrypted_data);
-      
+
       if (score >= 60) {
         console.log(`Match found! Sell: ${sell.vault_uuid} | Buy: ${buy.vault_uuid} | Score: ${score}`);
-        
+
         try {
           // Push to Aeneid blockchain
           const { request } = await publicClient.simulateContract({
             address: MATCHER_ADDRESS,
             abi: matcherAbi,
             functionName: 'recordMatch',
-            args: [
-              `0x${sell.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`,
-              `0x${buy.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`,
-              score
-            ],
+            args: [sellBytes32, buyBytes32, score],
             account,
           });
 

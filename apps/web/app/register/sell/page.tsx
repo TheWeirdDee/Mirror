@@ -68,13 +68,12 @@ export default function SellRegistration() {
       
       console.log("On-chain Tx Hash:", txHash);
       
-      // 2. Wait for confirmation
+      // 2. Wait for confirmation — must succeed before writing to Supabase
       setSubmitStep("2/3: Waiting for on-chain block confirmation...");
-      if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash: txHash });
-      }
-      
-      // 3. Save to Supabase
+      if (!publicClient) throw new Error("Chain client unavailable. Refresh and try again.");
+      await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      // 3. Save to Supabase — only reached if on-chain tx confirmed
       setSubmitStep("3/3: Encrypting and saving vault intent to database...");
       const { error } = await supabase.from('vaults').insert({
         vault_uuid: newVaultId,
