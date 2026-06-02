@@ -37,12 +37,12 @@ export default function BuyRegistration() {
     dealTypes: "Acquisition, Acquihire",
     targetGeographies: "US, Remote",
     budgetRange: "$10M–$50M",
-    companyName: "",
-    budgetMin: "",
-    budgetMax: "",
-    strategicRationale: "",
-    mustHaves: "",
-    dealBreakers: "",
+    companyName: "Meridian Group",
+    budgetMin: "12000000",
+    budgetMax: "25000000",
+    strategicRationale: "Looking to expand into revenue forecasting and pipeline analytics. Acquiring is faster than building.",
+    mustHaves: "ARR above 2M. Team retention 60% minimum for 12 months post-close.",
+    dealBreakers: "More than 30% revenue from single customer. Any ongoing litigation. Offshore-only team.",
   });
 
   const step2Valid =
