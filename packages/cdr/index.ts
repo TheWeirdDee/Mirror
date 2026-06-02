@@ -6,7 +6,7 @@ export * from './abis/OwnerOnlyWriteConditionABI';
 
 // Common config interfaces that front-end and agent can use
 export const MIRROR_CONFIG = {
-  chainId: 1513,
+  chainId: 1315,
   rpcUrl: "https://aeneid.storyrpc.io",
   explorerUrl: "https://aeneid.storyscan.io",
   contracts: {

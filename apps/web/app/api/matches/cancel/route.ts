@@ -44,8 +44,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to read on-chain match state" }, { status: 500 });
   }
 
-  const sellWallet: string = (onChainMatch as any).sellWallet ?? onChainMatch[3];
-  const buyWallet: string = (onChainMatch as any).buyWallet ?? onChainMatch[4];
+  // Match struct order: [0]sellVaultUUID [1]buyVaultUUID [2]sellWallet [3]buyWallet [4]score [5]stage ... [10]active
+  const sellWallet: string = (onChainMatch as any).sellWallet ?? onChainMatch[2];
+  const buyWallet: string = (onChainMatch as any).buyWallet ?? onChainMatch[3];
   const isActive: boolean = (onChainMatch as any).active ?? onChainMatch[10];
 
   const isParty =
