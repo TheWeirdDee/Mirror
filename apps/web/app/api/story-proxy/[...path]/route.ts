@@ -24,9 +24,10 @@ async function fetchWithFallback(path: string, search: string) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const tail = params.path.join("/");
+  const { path } = await params;
+  const tail = path.join("/");
   const search = req.nextUrl.search ?? "";
 
   const res = await fetchWithFallback(tail, search);
