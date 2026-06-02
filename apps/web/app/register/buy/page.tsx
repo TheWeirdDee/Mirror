@@ -112,6 +112,12 @@ export default function BuyRegistration() {
       });
       console.log("CDR vault created:", cdrResult.uuid, "tx:", cdrResult.txHashes);
 
+      // Verify write tx actually succeeded — viem does not throw on revert
+      const writeReceipt = await publicClient.getTransactionReceipt({ hash: cdrResult.txHashes.write });
+      if (writeReceipt.status === 'reverted') {
+        throw new Error(`CDR write tx reverted (allocate fee: ${allocateFee}, write fee: ${writeFee}). Vault data was not encrypted on-chain.`);
+      }
+
       // 4. Save to Supabase — public signals + CDR vault reference
       setSubmitStep("4/4: Recording vault in database...");
       const { error } = await supabase.from('vaults').insert({
