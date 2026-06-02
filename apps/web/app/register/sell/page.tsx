@@ -112,6 +112,14 @@ export default function SellRegistration() {
         parseAbiParameters("address"),
         [address as `0x${string}`]
       );
+      console.log("[CDR debug] uploadCDR params:", {
+        writeConditionAddr: process.env.NEXT_PUBLIC_OWNER_WRITE_CONDITION_ADDR,
+        readConditionAddr: process.env.NEXT_PUBLIC_STAGED_READ_CONDITION_ADDR,
+        writeConditionData,
+        readConditionData: vaultBytes32,
+        allocateFee: allocateFee.toString(),
+        writeFee: writeFee.toString(),
+      });
       const cdrResult = await cdrClient.uploader.uploadCDR({
         dataKey: new TextEncoder().encode(JSON.stringify(privateFields)),
         updatable: false,
@@ -123,7 +131,7 @@ export default function SellRegistration() {
         allocateFeeOverride: allocateFee,
         writeFeeOverride: writeFee,
       });
-      console.log("CDR vault created:", cdrResult.uuid, "tx:", cdrResult.txHashes);
+      console.log("[CDR debug] result:", { uuid: cdrResult.uuid, txHashes: cdrResult.txHashes });
 
       // Verify write tx actually succeeded — viem does not throw on revert
       const writeReceipt = await publicClient.getTransactionReceipt({ hash: cdrResult.txHashes.write });
