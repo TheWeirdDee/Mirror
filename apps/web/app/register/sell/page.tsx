@@ -46,6 +46,7 @@ export default function SellRegistration() {
     targetPrice: "",
     priceFloor: "",
     dealNotes: "",
+    dealBreakers: "",
   });
 
   const step2Valid =
@@ -103,6 +104,7 @@ export default function SellRegistration() {
         targetPrice: formData.targetPrice,
         priceFloor: formData.priceFloor,
         dealNotes: formData.dealNotes,
+        dealBreakers: formData.dealBreakers,
       };
       const cdrResult = await cdrClient.uploader.uploadCDR({
         dataKey: new TextEncoder().encode(JSON.stringify(privateFields)),
@@ -303,6 +305,10 @@ export default function SellRegistration() {
                   <textarea
                     placeholder="Deal Notes — anything else the right acquirer should know" className="input min-h-[80px] resize-none"
                     value={formData.dealNotes} onChange={e => setFormData({...formData, dealNotes: e.target.value})}
+                  />
+                  <input
+                    type="text" placeholder="Deal Breakers" className="input"
+                    value={formData.dealBreakers} onChange={e => setFormData({...formData, dealBreakers: e.target.value})}
                   />
                 </div>
 
