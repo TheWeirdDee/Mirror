@@ -15,7 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning style={{ backgroundColor: '#0c0b09' }}>
+      <head>
+        <meta name="theme-color" content="#0c0b09" />
+      </head>
       <body className="noise-bg min-h-screen flex flex-col" suppressHydrationWarning>
         <Providers>
           <Navbar />
