@@ -33,9 +33,15 @@ export default function BuyRegistration() {
   const [formData, setFormData] = useState({
     acquirerType: "Strategic",
     targetSectors: "B2B SaaS, Data & Analytics",
+    targetStages: "Series A, Series B",
+    dealTypes: "Acquisition, Acquihire",
+    targetGeographies: "US, Remote",
+    budgetRange: "$10M–$50M",
     companyName: "",
     budgetMin: "",
     budgetMax: "",
+    strategicRationale: "",
+    mustHaves: "",
     dealBreakers: "",
   });
 
@@ -85,6 +91,8 @@ export default function BuyRegistration() {
         companyName: formData.companyName,
         budgetMin: formData.budgetMin,
         budgetMax: formData.budgetMax,
+        strategicRationale: formData.strategicRationale,
+        mustHaves: formData.mustHaves,
         dealBreakers: formData.dealBreakers,
       };
       const cdrResult = await cdrClient.uploader.uploadCDR({
@@ -107,6 +115,10 @@ export default function BuyRegistration() {
         encrypted_data: {
           acquirerType: formData.acquirerType,
           targetSectors: formData.targetSectors,
+          targetStages: formData.targetStages,
+          dealTypes: formData.dealTypes,
+          targetGeographies: formData.targetGeographies,
+          budgetRange: formData.budgetRange,
           companyName: formData.companyName,
           cdr_vault_uuid: cdrResult.uuid,
         },
@@ -168,10 +180,10 @@ export default function BuyRegistration() {
                   </p>
                 </div>
 
-                <div className="space-y-6 flex-1">
+                <div className="space-y-4 flex-1">
                   <div>
                     <label className="block text-sm font-medium mb-2">Acquirer Type</label>
-                    <select 
+                    <select
                       className="input appearance-none"
                       value={formData.acquirerType}
                       onChange={(e) => setFormData({...formData, acquirerType: e.target.value})}
@@ -184,10 +196,42 @@ export default function BuyRegistration() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Target Sectors</label>
-                    <input 
-                      type="text" className="input" placeholder="e.g. B2B SaaS, Consumer"
+                    <input
+                      type="text" className="input" placeholder="e.g. B2B SaaS, Data & Analytics"
                       value={formData.targetSectors}
                       onChange={(e) => setFormData({...formData, targetSectors: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Target Stages</label>
+                    <input
+                      type="text" className="input" placeholder="e.g. Series A, Series B"
+                      value={formData.targetStages}
+                      onChange={(e) => setFormData({...formData, targetStages: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Deal Types</label>
+                    <input
+                      type="text" className="input" placeholder="e.g. Acquisition, Acquihire"
+                      value={formData.dealTypes}
+                      onChange={(e) => setFormData({...formData, dealTypes: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Target Geographies</label>
+                    <input
+                      type="text" className="input" placeholder="e.g. US, Remote"
+                      value={formData.targetGeographies}
+                      onChange={(e) => setFormData({...formData, targetGeographies: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Budget Range</label>
+                    <input
+                      type="text" className="input" placeholder="e.g. $10M–$50M"
+                      value={formData.budgetRange}
+                      onChange={(e) => setFormData({...formData, budgetRange: e.target.value})}
                     />
                   </div>
                 </div>
@@ -214,21 +258,29 @@ export default function BuyRegistration() {
                 </div>
 
                 <div className="space-y-4 flex-1">
-                  <input 
-                    type="text" placeholder="Company / Fund Name" className="input" 
+                  <input
+                    type="text" placeholder="Company / Fund Name" className="input"
                     value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})}
                   />
                   <div className="flex gap-4">
-                    <input 
+                    <input
                       type="text" placeholder="Budget Min (USD)" className="input"
                       value={formData.budgetMin} onChange={e => setFormData({...formData, budgetMin: e.target.value})}
                     />
-                    <input 
+                    <input
                       type="text" placeholder="Budget Max (USD)" className="input"
                       value={formData.budgetMax} onChange={e => setFormData({...formData, budgetMax: e.target.value})}
                     />
                   </div>
-                  <input 
+                  <textarea
+                    placeholder="Strategic Rationale — why are you looking to acquire?" className="input min-h-[80px] resize-none"
+                    value={formData.strategicRationale} onChange={e => setFormData({...formData, strategicRationale: e.target.value})}
+                  />
+                  <input
+                    type="text" placeholder="Must-Haves (e.g. ARR above $2M, team retention 60%)" className="input"
+                    value={formData.mustHaves} onChange={e => setFormData({...formData, mustHaves: e.target.value})}
+                  />
+                  <input
                     type="text" placeholder="Deal Breakers" className="input"
                     value={formData.dealBreakers} onChange={e => setFormData({...formData, dealBreakers: e.target.value})}
                   />

@@ -120,9 +120,40 @@ export async function pollVaults() {
   }
 }
 
-// Dummy scoring function (in reality this would decrypt and compare metrics)
+// Score compatibility using public signals from both vaults
 function computeMatchScore(sellData: any, buyData: any): number {
-  return Math.floor(Math.random() * (95 - 65 + 1) + 65); // Random score between 65 and 95
+  let score = 30; // base
+
+  // Sector match (+25): sell sector appears in buy targetSectors
+  if (sellData?.sector && buyData?.targetSectors) {
+    if (buyData.targetSectors.toLowerCase().includes(sellData.sector.toLowerCase())) score += 25;
+  }
+
+  // Stage match (+20): sell stage appears in buy targetStages
+  if (sellData?.stage && buyData?.targetStages) {
+    if (buyData.targetStages.toLowerCase().includes(sellData.stage.toLowerCase())) score += 20;
+  }
+
+  // Deal type match (+15): sell dealType appears in buy dealTypes
+  if (sellData?.dealType && buyData?.dealTypes) {
+    if (buyData.dealTypes.toLowerCase().includes(sellData.dealType.toLowerCase())) score += 15;
+  }
+
+  // Geography overlap (+10): any sell geography token appears in buy targetGeographies
+  if (sellData?.geography && buyData?.targetGeographies) {
+    const buyGeos = buyData.targetGeographies.toLowerCase();
+    const sellGeos = (sellData.geography as string).toLowerCase().split(',');
+    if (sellGeos.some((g: string) => buyGeos.includes(g.trim()))) score += 10;
+  }
+
+  // Budget/size range overlap (+5): sell sizeRange overlaps with buy budgetRange
+  if (sellData?.sizeRange && buyData?.budgetRange) {
+    const sellRange = sellData.sizeRange.toLowerCase();
+    const buyRange = buyData.budgetRange.toLowerCase();
+    if (sellRange === buyRange || sellRange.includes(buyRange) || buyRange.includes(sellRange)) score += 5;
+  }
+
+  return Math.min(score, 99);
 }
 
 // Start polling loop
