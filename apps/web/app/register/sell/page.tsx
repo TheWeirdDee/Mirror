@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { CDRClient, initWasm } from "@piplabs/cdr-sdk";
-import { cdrAbi } from "@piplabs/cdr-contracts";
+import { cdrAbi } from "@piplabs/cdr-sdk";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
