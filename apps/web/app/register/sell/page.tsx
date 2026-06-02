@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
+import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { CDRClient, initWasm } from "@piplabs/cdr-sdk";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { createClient } from "@supabase/supabase-js";
@@ -107,12 +108,16 @@ export default function SellRegistration() {
         dealNotes: formData.dealNotes,
         dealBreakers: formData.dealBreakers,
       };
+      const writeConditionData = encodeAbiParameters(
+        parseAbiParameters("address"),
+        [address as `0x${string}`]
+      );
       const cdrResult = await cdrClient.uploader.uploadCDR({
         dataKey: new TextEncoder().encode(JSON.stringify(privateFields)),
         updatable: false,
         writeConditionAddr: process.env.NEXT_PUBLIC_OWNER_WRITE_CONDITION_ADDR as `0x${string}`,
         readConditionAddr: process.env.NEXT_PUBLIC_STAGED_READ_CONDITION_ADDR as `0x${string}`,
-        writeConditionData: "0x",
+        writeConditionData,
         readConditionData: vaultBytes32,
         accessAuxData: "0x",
         allocateFeeOverride: allocateFee,
