@@ -66,8 +66,8 @@ export async function pollVaults() {
     // Skip vaults that were never confirmed on-chain (Supabase-only entries)
     const sellRecord = await publicClient.readContract({
       address: MATCHER_ADDRESS, abi: matcherAbi, functionName: 'vaultRecords', args: [sellBytes32]
-    }) as { owner: string; vaultType: string; registered: boolean };
-    if (!sellRecord.registered) {
+    }) as unknown as [string, string, boolean];
+    if (!sellRecord[2]) {
       console.log(`Sell vault ${sell.vault_uuid} not registered on-chain — skipping`);
       continue;
     }
@@ -77,8 +77,8 @@ export async function pollVaults() {
 
       const buyRecord = await publicClient.readContract({
         address: MATCHER_ADDRESS, abi: matcherAbi, functionName: 'vaultRecords', args: [buyBytes32]
-      }) as { owner: string; vaultType: string; registered: boolean };
-      if (!buyRecord.registered) {
+      }) as unknown as [string, string, boolean];
+      if (!buyRecord[2]) {
         console.log(`Buy vault ${buy.vault_uuid} not registered on-chain — skipping`);
         continue;
       }

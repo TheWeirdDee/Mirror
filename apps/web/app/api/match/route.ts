@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
     const sellBytes32 = `0x${sell.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
     const sellRecord = await publicClient.readContract({
       address: MIRROR_MATCHER_ADDR, abi: vaultRecordsAbi, functionName: 'vaultRecords', args: [sellBytes32]
-    }) as { registered: boolean };
-    if (!sellRecord.registered) {
+    }) as unknown as [string, string, boolean];
+    if (!sellRecord[2]) {
       console.log(`Sell vault ${sell.vault_uuid} not on-chain — skipping`);
       continue;
     }
@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
       const buyBytes32 = `0x${buy.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
       const buyRecord = await publicClient.readContract({
         address: MIRROR_MATCHER_ADDR, abi: vaultRecordsAbi, functionName: 'vaultRecords', args: [buyBytes32]
-      }) as { registered: boolean };
-      if (!buyRecord.registered) {
+      }) as unknown as [string, string, boolean];
+      if (!buyRecord[2]) {
         console.log(`Buy vault ${buy.vault_uuid} not on-chain — skipping`);
         continue;
       }
