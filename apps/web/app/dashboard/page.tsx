@@ -332,7 +332,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mt-8 border-t border-[var(--border-default)] pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 border-t border-[var(--border-default)] pt-8">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] mb-4">Vault Details</h3>
                 <div className="space-y-4">

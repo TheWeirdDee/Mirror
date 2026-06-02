@@ -1,12 +1,28 @@
 "use client";
 
 import "./explainer.css";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function ExplainerPage() {
+  const pageRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(".page-eyebrow", { y: -20, opacity: 0, duration: 0.7, ease: "power3.out" });
+      gsap.from(".page-title", { y: 30, opacity: 0, duration: 1, ease: "power3.out", delay: 0.08 });
+      gsap.from(".page-subtitle", { y: 18, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.12 });
+      gsap.from(".section-header", { y: 24, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.12, delay: 0.2 });
+      gsap.from(".expl-card", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.28 });
+      gsap.from(".compare-col, .step-item, .faq-item, .verdict-box", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.32 });
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="explainer-page-wrapper">
+    <div className="explainer-page-wrapper" ref={pageRef}>
       <div style={{ paddingTop: '80px' }}>
         <div className="page">
 

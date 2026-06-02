@@ -1,8 +1,9 @@
 "use client";
 
 import "./landing.css";
-import { MouseEvent, useState } from "react";
+import { MouseEvent, useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import gsap from "gsap";
 import { Lock, Package, Settings, FileText, Award, Bot, Database, CircleDot, Eye } from "lucide-react";
 
 const STAGES = [
@@ -24,8 +25,23 @@ export default function Home() {
   const [activeApproach, setActiveApproach] = useState(0);
   const [activeStage, setActiveStage] = useState<number | null>(null);
 
+  const pageRef = useRef<HTMLDivElement | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(".hero-eyebrow", { y: -20, opacity: 0, duration: 0.7, ease: "power3.out" });
+      gsap.from(".hero-title", { y: 40, opacity: 0, duration: 1, ease: "power3.out", delay: 0.08 });
+      gsap.from(".hero-desc, .hero-ctas, .hero-stats", { y: 24, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.1, delay: 0.18 });
+      gsap.from(".problem-card", { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.25 });
+      gsap.from(".approach-item", { x: -22, opacity: 0, duration: 0.75, ease: "power3.out", stagger: 0.08, delay: 0.32 });
+      gsap.from(".stage-row", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07, delay: 0.3 });
+      gsap.from(".vault-box, .vault-grid .vault-box", { y: 22, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.4 });
+      gsap.from(".cta-card", { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.45 });
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -33,7 +49,7 @@ export default function Home() {
   };
 
   return (
-    <div className="app">
+    <div className="app" ref={pageRef}>
       <div className="grain" />
 
       {/* HERO */}
@@ -133,6 +149,7 @@ export default function Home() {
           <div className="section-label">03 — Revelation Protocol</div>
           <h2 className="section-title">Four stages of disclosure.<br /><em>Each requiring mutual consent.</em></h2>
           <p className="section-body">No single party can advance a stage. Every transition is a smart contract call that requires both sides to confirm. The protocol enforces the order. Nobody decides — the code does.</p>
+          <p className="stage-instruction">Mobile guide: tap a stage to open it, then scroll the grid to read each step clearly. The first four stages are arranged two-by-two for easier browsing.</p>
           <div className="stages-wrap">
             {STAGES.map((s, i) => (
               <div key={s.n} className="stage-row" onClick={() => setActiveStage(activeStage === i ? null : i)}>
@@ -174,7 +191,7 @@ export default function Home() {
               </div>
             ) : <div key={i} className="vault-arrow">→</div>)}
           </div>
-          <div style={{display:"flex",justifyContent:"center",gap:"0",marginTop:"2px",flexWrap:"wrap"}}>
+          <div className="vault-grid" style={{marginTop:"2px"}}>
             {[
               {icon:<FileText size={28} />,title:"MirrorNDA.sol",sub:"Dual-sig NDA"},
               {icon:<Award size={28} />,title:"NegotiationRights",sub:"ERC-721 soulbound"},

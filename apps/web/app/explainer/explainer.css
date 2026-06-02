@@ -269,7 +269,9 @@
 
 @media (max-width: 768px) {
   .page { padding: 32px 20px 48px; }
-  .card-row-2, .card-row-3, .card-row-4, .compare-wrap { grid-template-columns: 1fr !important; }
-  .stage-flow { flex-direction: column; }
-  .stage-item::after { content: '↓'; right: auto; left: 50%; transform: translateX(-50%); top: auto; bottom: -16px; }
+  .card-row-2, .card-row-3, .card-row-4, .compare-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stage-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; overflow-x: visible; }
+  .stage-item { min-width: auto; }
+  .stage-item::after { display: none; }
+  .stage-flow .stage-item:last-child { grid-column: span 2; }
 }
