@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { useAccount, useReadContract, useWriteContract, usePublicClient, useSignMessage } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
