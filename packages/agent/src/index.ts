@@ -5,8 +5,8 @@ import { storyAeneid } from 'viem/chains';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
-// Load .env from root
-dotenv.config({ path: resolve(__dirname, '../../../.env') });
+// Load .env from root — override: true forces dotenv to win over system env vars
+dotenv.config({ path: resolve(__dirname, '../../../.env'), override: true });
 
 // Setup Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
