@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, http, parseAbi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { createClient } from "@supabase/supabase-js";
 import { aeneid } from "@/lib/chain";
 import { MIRROR_MATCHER_ADDR, MIRROR_MATCHER_ABI } from "@/lib/contracts";
+
+const vaultRecordsAbi = parseAbi([
+  'function vaultRecords(bytes32) external view returns (address owner, string vaultType, bool registered)'
+]);
 
 export async function GET(request: NextRequest) {
   // 1. Cron secret authorization
@@ -62,17 +66,32 @@ export async function GET(request: NextRequest) {
 
   // 4. Matchmaking scoring logic
   for (const sell of sellVaults) {
+    const sellBytes32 = `0x${sell.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
+    const sellRecord = await publicClient.readContract({
+      address: MIRROR_MATCHER_ADDR, abi: vaultRecordsAbi, functionName: 'vaultRecords', args: [sellBytes32]
+    }) as { registered: boolean };
+    if (!sellRecord.registered) {
+      console.log(`Sell vault ${sell.vault_uuid} not on-chain — skipping`);
+      continue;
+    }
+
     for (const buy of buyVaults) {
+      const buyBytes32 = `0x${buy.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
+      const buyRecord = await publicClient.readContract({
+        address: MIRROR_MATCHER_ADDR, abi: vaultRecordsAbi, functionName: 'vaultRecords', args: [buyBytes32]
+      }) as { registered: boolean };
+      if (!buyRecord.registered) {
+        console.log(`Buy vault ${buy.vault_uuid} not on-chain — skipping`);
+        continue;
+      }
+
       // Calculate score (simple mock matching for now)
       const score = Math.floor(Math.random() * (95 - 65 + 1) + 65);
-      
+
       if (score >= 60) {
         console.log(`Match found! Sell: ${sell.vault_uuid} | Buy: ${buy.vault_uuid} | Score: ${score}`);
-        
-        try {
-          const sellBytes32 = `0x${sell.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
-          const buyBytes32 = `0x${buy.vault_uuid.replace(/-/g, '').padEnd(64, '0')}` as `0x${string}`;
 
+        try {
           // Push to story Aeneid blockchain
           const { request: matchReq } = await publicClient.simulateContract({
             address: MIRROR_MATCHER_ADDR,
