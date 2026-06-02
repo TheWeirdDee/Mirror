@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 import { CDRClient, initWasm } from "@piplabs/cdr-sdk";
+import { cdrAbi } from "@piplabs/cdr-contracts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -112,6 +113,17 @@ export default function SellRegistration() {
         parseAbiParameters("address"),
         [address as `0x${string}`]
       );
+      const CDR_ADDR = "0xCCCcCC0000000000000000000000000000000005" as const;
+      const [chainWriteFee, chainAllocateFee, chainMaxSize] = await Promise.all([
+        publicClient.readContract({ address: CDR_ADDR, abi: cdrAbi, functionName: "writeFee" }),
+        publicClient.readContract({ address: CDR_ADDR, abi: cdrAbi, functionName: "allocateFee" }),
+        publicClient.readContract({ address: CDR_ADDR, abi: cdrAbi, functionName: "maxEncryptedDataSize" }),
+      ]);
+      console.log("[CDR chain]", {
+        writeFee: chainWriteFee.toString(),
+        allocateFee: chainAllocateFee.toString(),
+        maxEncryptedDataSize: chainMaxSize.toString(),
+      });
       console.log("[CDR debug] uploadCDR params:", {
         writeConditionAddr: process.env.NEXT_PUBLIC_OWNER_WRITE_CONDITION_ADDR,
         readConditionAddr: process.env.NEXT_PUBLIC_STAGED_READ_CONDITION_ADDR,
