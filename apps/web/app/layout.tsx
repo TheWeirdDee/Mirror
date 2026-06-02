@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="noise-bg min-h-screen flex flex-col">
+      <body className="noise-bg min-h-screen flex flex-col" suppressHydrationWarning>
         <Providers>
           <Navbar />
           <main className="flex-1">

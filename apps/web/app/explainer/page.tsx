@@ -3,6 +3,7 @@
 import "./explainer.css";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
 
@@ -10,13 +11,21 @@ export default function ExplainerPage() {
   const pageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
+      // Header — above the fold, opacity fade is safe
       gsap.from(".page-eyebrow", { y: -20, opacity: 0, duration: 0.7, ease: "power3.out" });
       gsap.from(".page-title", { y: 30, opacity: 0, duration: 1, ease: "power3.out", delay: 0.08 });
-      gsap.from(".page-subtitle", { y: 18, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.12 });
-      gsap.from(".section-header", { y: 24, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.12, delay: 0.2 });
-      gsap.from(".expl-card", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.28 });
-      gsap.from(".compare-col, .step-item, .faq-item, .verdict-box", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.32 });
+      gsap.from(".page-subtitle", { y: 18, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.15 });
+
+      // Below-fold — scroll-triggered slide only, no opacity so elements never get stuck invisible
+      gsap.from(".section-header", { y: 22, duration: 0.7, ease: "power3.out", stagger: 0.1, clearProps: "transform", scrollTrigger: { trigger: ".section-header", start: "top 88%", once: true } });
+      gsap.from(".expl-card", { y: 24, duration: 0.75, ease: "power3.out", stagger: 0.07, clearProps: "transform", scrollTrigger: { trigger: ".expl-card", start: "top 88%", once: true } });
+      gsap.from(".callout", { y: 20, duration: 0.7, ease: "power3.out", clearProps: "transform", scrollTrigger: { trigger: ".callout", start: "top 88%", once: true } });
+      gsap.from(".compare-col", { y: 24, duration: 0.75, ease: "power3.out", stagger: 0.1, clearProps: "transform", scrollTrigger: { trigger: ".compare-col", start: "top 88%", once: true } });
+      gsap.from(".step-item", { x: -20, duration: 0.7, ease: "power3.out", stagger: 0.08, clearProps: "transform", scrollTrigger: { trigger: ".step-item", start: "top 88%", once: true } });
+      gsap.from(".faq-item", { y: 18, duration: 0.65, ease: "power3.out", stagger: 0.06, clearProps: "transform", scrollTrigger: { trigger: ".faq-item", start: "top 88%", once: true } });
+      gsap.from(".verdict-box", { y: 24, duration: 0.8, ease: "power3.out", clearProps: "transform", scrollTrigger: { trigger: ".verdict-box", start: "top 88%", once: true } });
     }, pageRef);
     return () => ctx.revert();
   }, []);

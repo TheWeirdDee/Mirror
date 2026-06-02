@@ -242,22 +242,12 @@
 .stage-main { padding: 32px 40px; border-right: 1px solid var(--border); }
 .stage-main-title { font-family: var(--serif); font-size: 20px; color: var(--cream); margin-bottom: 6px; }
 .stage-main-cond { font-family: var(--mono); font-size: 11px; color: var(--gold); letter-spacing: 0.06em; }
-.stage-instruction { display: none; font-size: 13px; color: var(--cream-dim); margin-top: 10px; max-width: 700px; }
+.stage-main-detail { display: none; font-size: 13px; color: var(--cream-dim); line-height: 1.75; margin-top: 10px; }
+.stage-main-detail.active { display: block; }
 .stage-detail { padding: 32px 40px; }
 .stage-detail-body { font-size: 13px; color: var(--cream-dim); line-height: 1.75; }
 
 .vault-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; width: 100%; }
-
-@keyframes floatAndGlow {
-  0%, 100% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(-6px); opacity: 0.88; }
-}
-@keyframes softPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.08); }
-  50% { box-shadow: 0 0 0 18px rgba(201,168,76,0.08); }
-}
-.vault-center .vault-box-icon { animation: floatAndGlow 4s ease-in-out infinite; }
-.vault-center { animation: softPulse 5s ease-in-out infinite; }
 
 /* VAULT FLOW */
 .vault-section { padding: 120px 48px; background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -310,26 +300,30 @@
   .hero-eyebrow { justify-content: center; }
   .hero-eyebrow::after { display: none; }
   .hero-ctas { justify-content: center; }
-  .hero-stats { justify-content: center; flex-direction: column; }
+  .hero-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; }
+  .hero-stat { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .hero-stat:nth-child(2), .hero-stat:nth-child(4) { border-right: none; }
+  .hero-stat:nth-child(3), .hero-stat:nth-child(4) { border-bottom: none; }
   .hero-image-col { display: none; }
   .problem-grid, .approach-wrap, .cta-cards { grid-template-columns: 1fr; }
-  .stage-row { grid-template-columns: 48px 1fr; }
   .stage-detail { display: none; }
-  .stage-instruction { display: block; }
-  .stages-wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .stages-wrap { display: flex; flex-direction: column; gap: 10px; }
   .stage-row {
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 52px 1fr;
     border-radius: 14px;
+    border: 1px solid rgba(242,237,228,0.08);
     background: rgba(242,237,228,0.03);
-    border-color: rgba(242,237,228,0.08);
   }
-  .stage-main { border-right: none; padding: 24px 0 0 0; }
-  .stage-n-dot { width: 44px; height: 44px; font-size: 14px; }
-  .stage-main-title { font-size: 18px; }
+  /* fix oval: desktop .stage-n-col has padding: 32px 24px which squishes the dot in a narrow column */
+  .stage-n-col { padding: 20px 8px; border-right: 1px solid rgba(242,237,228,0.08); }
+  .stage-n-dot { width: 36px; height: 36px; font-size: 12px; flex-shrink: 0; }
+  .stage-main { border-right: none; padding: 16px 16px 16px 12px; }
+  .stage-main-title { font-size: 16px; }
   .stage-main-cond { font-size: 10px; }
+  /* always show detail text on mobile — no tap required */
+  .stage-main-detail { display: block; }
   .vault-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vault-flow { flex-direction: column; }
   .vault-arrow { transform: rotate(90deg); }
   .footer { flex-direction: column; gap: 24px; text-align: center; }
-  .hero-stat { border-right: none; border-bottom: 1px solid var(--border); }
 }

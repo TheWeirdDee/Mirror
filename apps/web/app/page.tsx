@@ -4,6 +4,7 @@ import "./landing.css";
 import { MouseEvent, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Lock, Package, Settings, FileText, Award, Bot, Database, CircleDot, Eye } from "lucide-react";
 
 const STAGES = [
@@ -30,15 +31,19 @@ export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
+      // Hero — fires on load, above the fold, opacity fade-in is safe here
       gsap.from(".hero-eyebrow", { y: -20, opacity: 0, duration: 0.7, ease: "power3.out" });
       gsap.from(".hero-title", { y: 40, opacity: 0, duration: 1, ease: "power3.out", delay: 0.08 });
       gsap.from(".hero-desc, .hero-ctas, .hero-stats", { y: 24, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.1, delay: 0.18 });
-      gsap.from(".problem-card", { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.25 });
-      gsap.from(".approach-item", { x: -22, opacity: 0, duration: 0.75, ease: "power3.out", stagger: 0.08, delay: 0.32 });
-      gsap.from(".stage-row", { y: 26, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07, delay: 0.3 });
-      gsap.from(".vault-box, .vault-grid .vault-box", { y: 22, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.4 });
-      gsap.from(".cta-card", { y: 28, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.08, delay: 0.45 });
+
+      // Below-fold — scroll-triggered slide only, no opacity so elements never get stuck invisible
+      gsap.from(".problem-card", { y: 28, duration: 0.8, ease: "power3.out", stagger: 0.08, clearProps: "transform", scrollTrigger: { trigger: ".problem-card", start: "top 85%", once: true } });
+      gsap.from(".approach-item", { x: -22, duration: 0.75, ease: "power3.out", stagger: 0.08, clearProps: "transform", scrollTrigger: { trigger: ".approach-item", start: "top 85%", once: true } });
+      gsap.from(".stage-row", { y: 26, duration: 0.8, ease: "power3.out", stagger: 0.07, clearProps: "transform", scrollTrigger: { trigger: ".stage-row", start: "top 85%", once: true } });
+      gsap.from(".vault-box", { y: 22, duration: 0.8, ease: "power3.out", stagger: 0.08, clearProps: "transform", scrollTrigger: { trigger: ".vault-box", start: "top 85%", once: true } });
+      gsap.from(".cta-card", { y: 28, duration: 0.8, ease: "power3.out", stagger: 0.08, clearProps: "transform", scrollTrigger: { trigger: ".cta-card", start: "top 85%", once: true } });
     }, pageRef);
     return () => ctx.revert();
   }, []);
@@ -149,7 +154,6 @@ export default function Home() {
           <div className="section-label">03 — Revelation Protocol</div>
           <h2 className="section-title">Four stages of disclosure.<br /><em>Each requiring mutual consent.</em></h2>
           <p className="section-body">No single party can advance a stage. Every transition is a smart contract call that requires both sides to confirm. The protocol enforces the order. Nobody decides — the code does.</p>
-          <p className="stage-instruction">Mobile guide: tap a stage to open it, then scroll the grid to read each step clearly. The first four stages are arranged two-by-two for easier browsing.</p>
           <div className="stages-wrap">
             {STAGES.map((s, i) => (
               <div key={s.n} className="stage-row" onClick={() => setActiveStage(activeStage === i ? null : i)}>
@@ -159,7 +163,7 @@ export default function Home() {
                 <div className="stage-main">
                   <div className="stage-main-title">{s.label}</div>
                   <div className="stage-main-cond">{s.condition}</div>
-                  {activeStage === i && <div style={{fontSize:"13px",color:"var(--cream-dim)",lineHeight:"1.75",marginTop:"12px"}}>{s.detail}</div>}
+                  <div className={`stage-main-detail${activeStage === i ? " active" : ""}`}>{s.detail}</div>
                 </div>
                 <div className="stage-detail">
                   <div className="stage-detail-body">{s.detail}</div>
