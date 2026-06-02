@@ -4,7 +4,8 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAccount, useWriteContract, usePublicClient } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
+import { CDRClient, initWasm } from "@piplabs/cdr-sdk";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -23,6 +24,7 @@ export default function SellRegistration() {
   const { isConnected, address } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const { addToast } = useToastStore();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,17 +71,50 @@ export default function SellRegistration() {
       console.log("On-chain Tx Hash:", txHash);
       
       // 2. Wait for confirmation — must succeed before writing to Supabase
-      setSubmitStep("2/3: Waiting for on-chain block confirmation...");
+      setSubmitStep("2/4: Waiting for on-chain block confirmation...");
       if (!publicClient) throw new Error("Chain client unavailable. Refresh and try again.");
       await publicClient.waitForTransactionReceipt({ hash: txHash });
 
-      // 3. Save to Supabase — only reached if on-chain tx confirmed
-      setSubmitStep("3/3: Encrypting and saving vault intent to database...");
+      // 3. Encrypt private fields to a real CDR vault on Story
+      setSubmitStep("3/4: Encrypting private data to CDR vault on Story...");
+      if (!walletClient) throw new Error("Wallet client unavailable.");
+      await initWasm();
+      const cdrClient = new CDRClient({
+        network: "testnet",
+        publicClient: publicClient as any,
+        walletClient: walletClient as any,
+        apiUrl: process.env.NEXT_PUBLIC_STORY_API_URL!,
+      });
+      const privateFields = {
+        companyName: formData.companyName,
+        revenue: formData.revenue,
+        growth: formData.growth,
+        teamSize: formData.teamSize,
+        targetPrice: formData.targetPrice,
+      };
+      const cdrResult = await cdrClient.uploader.uploadCDR({
+        dataKey: new TextEncoder().encode(JSON.stringify(privateFields)),
+        updatable: false,
+        writeConditionAddr: process.env.NEXT_PUBLIC_OWNER_WRITE_CONDITION_ADDR as `0x${string}`,
+        readConditionAddr: process.env.NEXT_PUBLIC_STAGED_READ_CONDITION_ADDR as `0x${string}`,
+        writeConditionData: "0x",
+        readConditionData: vaultBytes32,
+        accessAuxData: "0x",
+      });
+      console.log("CDR vault created:", cdrResult.uuid, "tx:", cdrResult.txHashes);
+
+      // 4. Save to Supabase — public signals + CDR vault reference
+      setSubmitStep("4/4: Recording vault in database...");
       const { error } = await supabase.from('vaults').insert({
         vault_uuid: newVaultId,
         vault_type: 'sell',
         wallet_address: address,
-        encrypted_data: formData, // In a real app, this would be symmetrically encrypted before insert
+        encrypted_data: {
+          sector: formData.sector,
+          stage: formData.stage,
+          companyName: formData.companyName,
+          cdr_vault_uuid: cdrResult.uuid,
+        },
         status: 'active'
       });
 
