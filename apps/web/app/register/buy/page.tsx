@@ -87,6 +87,10 @@ export default function BuyRegistration() {
         walletClient: walletClient as any,
         apiUrl: process.env.NEXT_PUBLIC_STORY_API_URL!,
       });
+      const [allocateFee, writeFee] = await Promise.all([
+        cdrClient.observer.getAllocateFee(),
+        cdrClient.observer.getWriteFee(),
+      ]);
       const privateFields = {
         companyName: formData.companyName,
         budgetMin: formData.budgetMin,
@@ -103,6 +107,8 @@ export default function BuyRegistration() {
         writeConditionData: "0x",
         readConditionData: vaultBytes32,
         accessAuxData: "0x",
+        allocateFeeOverride: allocateFee,
+        writeFeeOverride: writeFee,
       });
       console.log("CDR vault created:", cdrResult.uuid, "tx:", cdrResult.txHashes);
 
