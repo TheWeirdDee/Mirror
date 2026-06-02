@@ -293,9 +293,13 @@ contract MirrorMatcher {
 
         m.active = false;
 
-        // Reseal both vaults
+        // Reseal both vaults — data sealed, no trace
         readCondition.sealVault(m.sellVaultUUID);
         readCondition.sealVault(m.buyVaultUUID);
+
+        // Free both wallets to match again
+        walletToMatch[m.sellWallet] = bytes32(0);
+        walletToMatch[m.buyWallet] = bytes32(0);
 
         emit MatchExpired(matchId);
     }
