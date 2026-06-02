@@ -109,9 +109,10 @@ export default function SellRegistration() {
         dealNotes: formData.dealNotes,
         dealBreakers: formData.dealBreakers,
       };
+      const signerAddress = (walletClient.account?.address ?? address) as `0x${string}`;
       const writeConditionData = encodeAbiParameters(
         parseAbiParameters("address"),
-        [address as `0x${string}`]
+        [signerAddress]
       );
       const CDR_ADDR = "0xCCCcCC0000000000000000000000000000000005" as const;
       const [chainWriteFee, chainAllocateFee, chainMaxSize] = await Promise.all([
