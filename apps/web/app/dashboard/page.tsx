@@ -251,8 +251,17 @@ export default function Dashboard() {
     if (match.status === 'stage_4') currentStage = 4;
   }
 
+  // Stage 2 confirmation status from on-chain struct
+  const sellConfirmedStage2 = matchOnChain
+    ? (Array.isArray(matchOnChain) ? matchOnChain[6] : (matchOnChain as any).sellConfirmedStage2)
+    : false;
+  const buyConfirmedStage2 = matchOnChain
+    ? (Array.isArray(matchOnChain) ? matchOnChain[7] : (matchOnChain as any).buyConfirmedStage2)
+    : false;
+
   // NDA signing status helpers (used at Stage 2)
   const isSellSide = vault?.vault_type === 'sell';
+  const currentUserConfirmedStage2 = isSellSide ? sellConfirmedStage2 : buyConfirmedStage2;
   const currentUserSigned = ndaRecord
     ? (isSellSide ? ndaRecord.sellSigned : ndaRecord.buySigned)
     : false;
@@ -298,15 +307,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stage Timeline */}
-      <div className="card mb-8">
-        <div className="flex justify-between relative">
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-[var(--border-default)] -z-10 -translate-y-1/2" />
+      <div className="card mb-8 overflow-x-auto">
+        <div className="flex justify-between relative min-w-[320px]">
+          <div className="absolute top-[8px] left-0 w-full h-1 bg-[var(--border-default)] -z-10" />
           {['Sealed', 'Match Found', 'Profiles', 'NDA', 'Full Access'].map((label, idx) => (
-            <div key={label} className="flex flex-col items-center bg-transparent px-2">
-              <div className={`w-4 h-4 rounded-full mb-2 ${
+            <div key={label} className="flex flex-col items-center bg-transparent px-1">
+              <div className={`w-4 h-4 rounded-full mb-2 shrink-0 ${
                 idx <= currentStage ? 'bg-[var(--text-primary)]' : 'bg-[var(--border-strong)]'
               }`} />
-              <span className={`text-xs font-mono uppercase tracking-wider ${
+              <span className={`text-[10px] sm:text-xs font-mono uppercase tracking-wider text-center ${
                 idx <= currentStage ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)]'
               }`}>{label}</span>
             </div>
@@ -366,13 +375,13 @@ export default function Dashboard() {
 
         {currentStage === 1 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8 card-match-found p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <Sparkles className="w-10 h-10 text-[var(--accent-match)] animate-pulse" />
-              <div>
-                <h2 className="text-2xl font-semibold text-[var(--accent-match)]">MATCH FOUND</h2>
-                <p className="text-[var(--text-secondary)] mt-1">A potential deal exists in our network.</p>
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--accent-match)] animate-pulse shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-semibold text-[var(--accent-match)]">MATCH FOUND</h2>
+                <p className="text-[var(--text-secondary)] mt-1 text-sm sm:text-base">A potential deal exists in our network.</p>
               </div>
-              <div className="ml-auto text-right">
+              <div className="text-right shrink-0">
                 <p className="score">{match.score}%</p>
                 <p className="score-label">Compatibility</p>
               </div>
@@ -385,47 +394,60 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                className="btn-primary flex-1 py-4 text-lg disabled:opacity-50"
-                onClick={async () => {
-                  if (!matchIdOnChain) return;
-                  setIsSubmitting(true);
-                  setSubmitStep("1/2: Requesting signature in wallet...");
-                  try {
-                    const txHash = await writeContractAsync({
-                      address: MIRROR_MATCHER_ADDR,
-                      abi: MIRROR_MATCHER_ABI,
-                      functionName: 'confirmAdvanceToStage2',
-                      args: [matchIdOnChain],
-                    });
-                    setSubmitStep("2/2: Waiting for on-chain block confirmation...");
-                    if (publicClient) {
-                      await publicClient.waitForTransactionReceipt({ hash: txHash });
+            {currentUserConfirmedStage2 ? (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                <div className="flex items-center gap-2 text-green-500 font-medium">
+                  <CheckCircle2 size={18} />
+                  <span>You've confirmed interest.</span>
+                </div>
+                <div className="flex items-center gap-2 text-[var(--text-secondary)] text-sm">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                  Waiting for counterparty to confirm...
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  className="btn-primary flex-1 py-4 text-lg disabled:opacity-50"
+                  onClick={async () => {
+                    if (!matchIdOnChain) return;
+                    setIsSubmitting(true);
+                    setSubmitStep("1/2: Requesting signature in wallet...");
+                    try {
+                      const txHash = await writeContractAsync({
+                        address: MIRROR_MATCHER_ADDR,
+                        abi: MIRROR_MATCHER_ABI,
+                        functionName: 'confirmAdvanceToStage2',
+                        args: [matchIdOnChain],
+                      });
+                      setSubmitStep("2/2: Waiting for on-chain block confirmation...");
+                      if (publicClient) {
+                        await publicClient.waitForTransactionReceipt({ hash: txHash });
+                      }
+                      addToast("Interest confirmed! Waiting for counterparty.", "success");
+                      await refetchMatchOnChain();
+                      fetchData();
+                    } catch (err: any) {
+                      console.error(err);
+                      addToast(err.shortMessage || err.message || "On-chain confirmation failed", "error");
+                    } finally {
+                      setIsSubmitting(false);
+                      setSubmitStep("");
                     }
-                    addToast("Interest confirmed successfully! Waiting for counterparty.", "success");
-                    await refetchMatchOnChain();
-                    fetchData();
-                  } catch (err: any) {
-                    console.error(err);
-                    addToast(err.shortMessage || err.message || "On-chain confirmation failed", "error");
-                  } finally {
-                    setIsSubmitting(false);
-                    setSubmitStep("");
-                  }
-                }}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Confirming..." : "Proceed to Stage 2 →"}
-              </button>
-              <button
-                className="btn-secondary py-4 px-8"
-                onClick={() => setCancelModal(true)}
-                disabled={isSubmitting}
-              >
-                Not Interested
-              </button>
-            </div>
+                  }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Confirming..." : "Proceed to Stage 2 →"}
+                </button>
+                <button
+                  className="btn-secondary py-4 px-8"
+                  onClick={() => setCancelModal(true)}
+                  disabled={isSubmitting}
+                >
+                  Not Interested
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -439,7 +461,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)] mb-4">Counterparty Profile</h3>
                 {vault.vault_type === 'sell' ? (
@@ -550,21 +572,21 @@ export default function Dashboard() {
 
         {currentStage === 3 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8">
-             <div className="flex items-center justify-between mb-12">
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
                <div className="text-center flex-1 company-name-reveal">
                  <p className="text-sm text-[var(--text-secondary)] uppercase tracking-widest mb-2">You</p>
-                 <h2 className="text-3xl font-semibold">{vault?.encrypted_data?.companyName || "Your Company"}</h2>
+                 <h2 className="text-2xl sm:text-3xl font-semibold">{vault?.encrypted_data?.companyName || "Your Company"}</h2>
                </div>
-               <div className="text-[var(--accent-match)] text-2xl px-8">
+               <div className="text-[var(--accent-match)] px-4 sm:px-8">
                  <ArrowLeftRight size={24} className="text-[var(--accent-match)]" />
                </div>
                <div className="text-center flex-1 company-name-reveal">
                  <p className="text-sm text-[var(--text-secondary)] uppercase tracking-widest mb-2">Counterparty</p>
-                 <h2 className="text-3xl font-semibold">{counterVault?.encrypted_data?.companyName || "Acme Corp"}</h2>
+                 <h2 className="text-2xl sm:text-3xl font-semibold">{counterVault?.encrypted_data?.companyName || "Acme Corp"}</h2>
                </div>
              </div>
 
-             <div className="border border-[var(--border-default)] rounded-xl p-8 bg-[var(--bg-elevated)] flex flex-col items-center text-center">
+             <div className="border border-[var(--border-default)] rounded-xl p-6 sm:p-8 bg-[var(--bg-elevated)] flex flex-col items-center text-center">
                <h3 className="text-xl font-semibold text-[var(--status-signed)] mb-2 flex items-center justify-center gap-2">
                  <CheckCircle2 size={20} className="text-[var(--status-signed)]" />
                  <span>NDA Signed On-Chain</span>
@@ -624,21 +646,21 @@ export default function Dashboard() {
 
         {currentStage === 4 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8">
-             <div className="flex items-center justify-between mb-12">
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
                <div className="text-center flex-1 company-name-reveal">
                  <p className="text-sm text-[var(--text-secondary)] uppercase tracking-widest mb-2">You</p>
-                 <h2 className="text-3xl font-semibold">{vault?.encrypted_data?.companyName || "Your Company"}</h2>
+                 <h2 className="text-2xl sm:text-3xl font-semibold">{vault?.encrypted_data?.companyName || "Your Company"}</h2>
                </div>
-               <div className="text-[var(--accent-match)] text-2xl px-8">
+               <div className="text-[var(--accent-match)] px-4 sm:px-8">
                  <ArrowLeftRight size={24} className="text-[var(--accent-match)]" />
                </div>
                <div className="text-center flex-1 company-name-reveal">
                  <p className="text-sm text-[var(--text-secondary)] uppercase tracking-widest mb-2">Counterparty</p>
-                 <h2 className="text-3xl font-semibold">{counterVault?.encrypted_data?.companyName || "Acme Corp"}</h2>
+                 <h2 className="text-2xl sm:text-3xl font-semibold">{counterVault?.encrypted_data?.companyName || "Acme Corp"}</h2>
                </div>
              </div>
 
-             <div className="border border-[var(--border-default)] rounded-xl p-8 bg-[var(--bg-elevated)] flex flex-col items-center">
+             <div className="border border-[var(--border-default)] rounded-xl p-6 sm:p-8 bg-[var(--bg-elevated)] flex flex-col items-center">
                <h3 className="text-xl font-semibold text-[var(--accent-match)] mb-4">STAGE 4 — FINANCIAL DETAILS UNLOCKED</h3>
                {vault.vault_type === 'sell' ? (
                  <p className="text-[var(--text-secondary)] text-center max-w-md">
@@ -647,7 +669,7 @@ export default function Dashboard() {
                ) : (
                  <div className="w-full max-w-md bg-[var(--bg-surface)] p-6 rounded-lg border border-[var(--border-default)]">
                    <h4 className="font-mono text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-6 text-center">Diligence Metrics</h4>
-                   <div className="grid grid-cols-2 gap-6">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                      <div>
                        <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wider">Annual Revenue (USD)</p>
                        <p className="text-lg font-semibold">{counterVault?.encrypted_data?.revenue ? `$${counterVault.encrypted_data.revenue}` : "$2,800,000"}</p>
