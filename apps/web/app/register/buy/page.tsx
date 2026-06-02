@@ -85,6 +85,7 @@ export default function BuyRegistration() {
         network: "testnet",
         publicClient: publicClient as any,
         walletClient: walletClient as any,
+        apiUrl: process.env.NEXT_PUBLIC_STORY_API_URL!,
       });
       const [allocateFee, writeFee] = await Promise.all([
         cdrClient.observer.getAllocateFee(),
