@@ -153,13 +153,28 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  const getFreshMatchId = async (): Promise<`0x${string}` | null> => {
+    if (!address || !publicClient) return null;
+    const id = await publicClient.readContract({
+      address: MIRROR_MATCHER_ADDR,
+      abi: MIRROR_MATCHER_ABI,
+      functionName: 'getMatchForWallet',
+      args: [address as `0x${string}`],
+    }) as `0x${string}`;
+    const zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    return id && id !== zero ? id : null;
+  };
+
   const handleCancel = async () => {
-    if (!matchIdOnChain || !match || !address) return;
+    if (!match || !address) return;
     setIsSubmitting(true);
     try {
+      const freshMatchId = await getFreshMatchId();
+      if (!freshMatchId) { addToast("No active match found on-chain.", "error"); return; }
+
       // Sign message so API can verify the caller's identity
       setSubmitStep("1/3: Sign the cancellation request in your wallet...");
-      const signature = await signMessageAsync({ message: `Cancel match: ${matchIdOnChain}` });
+      const signature = await signMessageAsync({ message: `Cancel match: ${freshMatchId}` });
 
       // Call cancelMatch on-chain (only the party's wallet can satisfy the require)
       setSubmitStep("2/3: Submitting cancellation on-chain...");
@@ -167,7 +182,7 @@ export default function Dashboard() {
         address: MIRROR_MATCHER_ADDR,
         abi: MIRROR_MATCHER_ABI,
         functionName: 'cancelMatch',
-        args: [matchIdOnChain],
+        args: [freshMatchId],
       });
 
       setSubmitStep("3/3: Waiting for block confirmation...");
@@ -180,7 +195,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchId: matchIdOnChain,
+          matchId: freshMatchId,
           supabaseMatchId: match.match_id,
           walletAddress: address,
           signature,
@@ -410,15 +425,16 @@ export default function Dashboard() {
                 <button
                   className="btn-primary flex-1 py-4 text-lg disabled:opacity-50"
                   onClick={async () => {
-                    if (!matchIdOnChain) return;
                     setIsSubmitting(true);
                     setSubmitStep("1/2: Requesting signature in wallet...");
                     try {
+                      const freshMatchId = await getFreshMatchId();
+                      if (!freshMatchId) { addToast("No active match found on-chain.", "error"); return; }
                       const txHash = await writeContractAsync({
                         address: MIRROR_MATCHER_ADDR,
                         abi: MIRROR_MATCHER_ABI,
                         functionName: 'confirmAdvanceToStage2',
-                        args: [matchIdOnChain],
+                        args: [freshMatchId],
                       });
                       setSubmitStep("2/2: Waiting for on-chain block confirmation...");
                       if (publicClient) {
@@ -523,15 +539,16 @@ export default function Dashboard() {
                   <button
                     className="btn-primary w-full disabled:opacity-50"
                     onClick={async () => {
-                      if (!matchIdOnChain) return;
                       setIsSubmitting(true);
                       setSubmitStep("1/2: Requesting NDA signature in wallet...");
                       try {
+                        const freshMatchId = await getFreshMatchId();
+                        if (!freshMatchId) { addToast("No active match found on-chain.", "error"); return; }
                         const txHash = await writeContractAsync({
                           address: MIRROR_NDA_ADDR,
                           abi: MIRROR_NDA_ABI,
                           functionName: 'sign',
-                          args: [matchIdOnChain],
+                          args: [freshMatchId],
                         });
                         setSubmitStep("2/2: Waiting for on-chain block confirmation...");
                         if (publicClient) {
@@ -597,15 +614,16 @@ export default function Dashboard() {
                  <button
                    className="btn-primary px-12 py-4 text-lg disabled:opacity-50"
                    onClick={async () => {
-                     if (!matchIdOnChain) return;
                      setIsSubmitting(true);
                      setSubmitStep("1/2: Requesting consent signature in wallet...");
                      try {
+                       const freshMatchId = await getFreshMatchId();
+                       if (!freshMatchId) { addToast("No active match found on-chain.", "error"); return; }
                        const txHash = await writeContractAsync({
                          address: MIRROR_MATCHER_ADDR,
                          abi: MIRROR_MATCHER_ABI,
                          functionName: 'grantStage4',
-                         args: [matchIdOnChain],
+                         args: [freshMatchId],
                        });
                        setSubmitStep("2/2: Waiting for on-chain block confirmation...");
                        if (publicClient) {
